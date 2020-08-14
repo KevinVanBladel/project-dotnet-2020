@@ -1,17 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Project_dotnet.Data;
 using Project_dotnet.Extensions;
 using Project_dotnet.Models;
 
 namespace Project_dotnet.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TrainingController : Controller
@@ -22,6 +18,8 @@ namespace Project_dotnet.Controllers
         {
             _context = context;
         }
+
+        [Authorize]
         [HttpGet("{id}")]
         public IActionResult GetTraining([FromRoute] int id)
         {
@@ -30,6 +28,9 @@ namespace Project_dotnet.Controllers
             if (training == null)
                 return NotFound();
 
+            if (training.GebruikerId != User.GetUserId())
+                return Unauthorized();
+
             return Ok(training);
         }
 
@@ -37,25 +38,25 @@ namespace Project_dotnet.Controllers
         [HttpGet]
         public IActionResult GetTrainingen()
         {
-            var trainingen = _context.Trainingen.ToList();
+            var trainingen = _context.Trainingen.Where(t => t.GebruikerId == User.GetUserId());
             return Ok(trainingen);
         }
 
         [HttpPost]
         public IActionResult AddTraining([FromBody] Training training)
         {
+            training.GebruikerId = User.GetUserId();
+
             _context.Trainingen.Add(training);
 
             _context.SaveChanges();
 
             return Ok();
         }
-
         [HttpDelete("{id}")]
         public IActionResult DeleteTraining([FromRoute] int id)
         {
             var training = _context.Trainingen.Find(id);
-
             if (training == null)
                 return NotFound("Training met id '" + id + "' niet gevonden.");
 
@@ -69,9 +70,11 @@ namespace Project_dotnet.Controllers
         public IActionResult UpdateTraining([FromRoute] int id, [FromBody] Training training)
         {
             var trainingToUpdate = _context.Trainingen.Find(id);
+            training.GebruikerId = User.GetUserId();
 
             if (trainingToUpdate == null)
                 return NotFound("Training met id '" + id + "' niet gevonden.");
+
 
             trainingToUpdate.updateTraining(training);
 

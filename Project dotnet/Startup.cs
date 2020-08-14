@@ -13,6 +13,7 @@ using System.Text;
 using Project_dotnet.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.SpaServices.AngularCli;
 
 namespace Project_dotnet
 {
@@ -28,6 +29,7 @@ namespace Project_dotnet
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
             // Om JSON Infinite loop te voorkomen
             services.AddMvc().AddNewtonsoftJson(
                 options =>
@@ -61,11 +63,15 @@ namespace Project_dotnet
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
+
             });
+            /*services.AddSpaStaticFiles(configuration =>
+            {
+                configuration.RootPath = "D:/angular2020/AngularProjectAug/dist";
+            });*/
 
             // configure DI for application services
             services.AddScoped<IUserService, UserService>();
-
 
             services.AddDefaultIdentity<Gebruiker>()
                 .AddRoles<IdentityRole>()
@@ -73,7 +79,16 @@ namespace Project_dotnet
 
             services.AddControllersWithViews();
             services.AddRazorPages();
-        }
+
+            services.AddCors(options =>
+                {
+                options.AddPolicy("CorsPolicy",
+                  builder => builder.AllowAnyOrigin()
+                 .AllowAnyMethod()
+                 .AllowAnyHeader());
+                });
+
+            }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -90,7 +105,8 @@ namespace Project_dotnet
                 app.UseHsts();
             }
             //app.UseHttpsRedirection();
-            app.UseStaticFiles();
+            app.UseCors("CorsPolicy");
+            /*app.UseSpaStaticFiles();*/
 
             app.UseRouting();
 
@@ -101,6 +117,17 @@ namespace Project_dotnet
             {
                 endpoints.MapControllers();
             });
+            /*app.UseSpa(spa =>
+            {
+
+                spa.Options.SourcePath = "D:/angular2020/AngularProjectAug";
+
+                if (env.IsDevelopment())
+                {
+                    spa.UseAngularCliServer(npmScript: "start");
+                }
+            });*/
+            
         }
     }
 }

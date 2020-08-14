@@ -32,5 +32,6 @@ namespace Project_dotnet.Models
         public string Token { get; set; }
         public ICollection<Training> Trainingen { get; set; }
         public ICollection<GebruikerWedstrijd> Wedstrijden { get; set; }
+
     }
 }
