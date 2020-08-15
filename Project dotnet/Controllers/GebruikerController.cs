@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.JsonPatch.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Project_dotnet.Data;
+using Project_dotnet.Extensions;
 using Project_dotnet.Models;
 using Project_dotnet.Services;
 using System;
@@ -32,12 +33,19 @@ namespace Project_dotnet.Controllers
             gebruiker.PasswordHash = user.Password;
             gebruiker.Voornaam = user.Voornaam;
             gebruiker.Achternaam = user.Achternaam;
+            if (gebruiker.UserName.Length != 0 && gebruiker.PasswordHash.Length > 7 && gebruiker.Voornaam.Length != 0 && gebruiker.Achternaam.Length != 0)
+            {
+                _context.Gebruikers.Add(gebruiker);
 
-            _context.Gebruikers.Add(gebruiker);
+                _context.SaveChanges();
 
-            _context.SaveChanges();
+                return Ok(gebruiker);
+            }
+            else
+            {
+                return BadRequest();
+            }
 
-            return Ok(gebruiker);
         }
 
         [HttpPost("login")]
@@ -50,7 +58,7 @@ namespace Project_dotnet.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, gebruiker.Id)
             };
             var token = _userService.Authenticate(gebruiker).Token;
 
@@ -70,11 +78,15 @@ namespace Project_dotnet.Controllers
 
             return Ok();
         }
-        [HttpPost("FindFirst")]
-        public IActionResult FindFirst(string id)
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetUser()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            return Ok(userId);
+            string id = User.GetUserId();
+            var gebruiker = _context.Gebruikers.Find(id);
+            if (gebruiker == null)
+                return NotFound("Gebruiker met id '" + id + "' niet gevonden.");
+            return Ok(gebruiker);
         }
     }
 

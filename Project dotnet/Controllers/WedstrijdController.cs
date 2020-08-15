@@ -28,7 +28,7 @@ namespace Project_dotnet.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetWedstrijd()
+        public IActionResult GetWedstrijden()
         {
             var wedstrijden = _context.Wedstrijden.ToList();
             return Ok(wedstrijden);

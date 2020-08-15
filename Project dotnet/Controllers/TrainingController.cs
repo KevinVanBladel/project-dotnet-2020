@@ -78,9 +78,6 @@ namespace Project_dotnet.Controllers
 
             trainingToUpdate.updateTraining(training);
 
-            /*if (false)
-                return BadRequest("Activiteit met id...");*/
-
             _context.SaveChanges();
 
             return Ok();
